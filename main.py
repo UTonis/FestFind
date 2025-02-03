@@ -18,12 +18,16 @@ app = FastAPI(
 for router in routers:
     app.include_router(router=router)
 
+origins = [
+    "http://localhost:5175",  # 프론트엔드 주소 추가
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 허용할 출처
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],  # 허용할 HTTP 메서드
-    allow_headers=["*"],  # 허용할 헤더
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 init_db(config=get_config())

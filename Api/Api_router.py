@@ -1,6 +1,5 @@
 import requests
 from fastapi import APIRouter
-from datetime import datetime, timedelta
 from fastapi.responses import JSONResponse
 from .Api_schema import SearchDTO
 
@@ -11,18 +10,18 @@ router = APIRouter(
 
 SERVICE_KEY = "khO0xRXeL2lCzz88ljXUxRVC0S7H7E2fg2t0190q0nFsfhmpSwS9DQA2bIdqy2wqGgoJKFYOBNE2SfSnN8vYvQ=="
 
-@router.post("/MainPage")
+@router.get("/MainPage")
 async def get_main_festival():
     # 기본 URL 설정
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/searchFestival1"
 
     # 요청 파라미터 설정
     params = {
-        "numOfRows": 50,
+        "numOfRows": 10,
         "MobileOS": "ETC",
         "MobileApp": "AppTest",
         "_type": "json",
-        "arrange": "A",
+        "arrange": "D",
         "eventStartDate": 20250121,
         "serviceKey": SERVICE_KEY
     }
@@ -52,6 +51,7 @@ async def get_main_festival():
                     firstimage2 = festival.get("firstimage2", "썸네일 대표 이미지 미제공")
                     areacode = festival.get("areacode", "지역코드 미제공")
                     contentid = festival.get("contentid", "컨텐츠아이디 미제공")
+                    contenttypeid = festival.get("contenttypeid", "컨텐츠타입아이디 미제공")
 
                     refined_festival = {
                         "addr1": addr1,
@@ -62,7 +62,8 @@ async def get_main_festival():
                         "firstimage" : firstimage,
                         "firstimage2" : firstimage2,
                         "areacode" : areacode,
-                        "contentid" : contentid
+                        "contentid" : contentid,
+                        "contenttypeid" : contenttypeid,
                     }
                     refined_festivals.append(refined_festival)    
                 return refined_festivals        
@@ -86,7 +87,7 @@ async def search_keyword(stdo: SearchDTO):
         "listYN": "Y",
         "arrange": "A",
         "keyword": stdo.keyword,
-        "contentTypeId": 15,
+        "contentTypeId": stdo.contentTypeId,
         "serviceKey": SERVICE_KEY
     }
 
@@ -98,24 +99,52 @@ async def search_keyword(stdo: SearchDTO):
             data = response.json()  # 응답이 JSON 형식이어야 함
         except ValueError:
             return {"message": "응답 데이터가 JSON 형식이 아닙니다."}
-
         if data.get("response", {}).get("header", {}).get("resultCode") == "0000":
             items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
             if isinstance(items, list) and items:
                 festivals = []
                 for item in items:
+                    contenttypeid = item.get('contenttypeid')
                     contentid = item.get('contentid')
-                    eventStartDate, eventEndDate = contentID(contentid)  # contentID 함수 호출
-                    festival = {
-                        "title": item.get('title', '이름 없음'),
-                        "address": item.get('addr1', '주소 없음'),
-                        "image": item.get('firstimage', '이미지 없음'),
-                        "contentid": item.get('contentid', '컨텐츠아이디 없음'),
-                        "contenttypeid": item.get('contenttypeid', '컨텐츠타입 없음'),
-                        "eventStartDate": eventStartDate,
-                        "eventEndDate": eventEndDate,
-                    }
-                    festivals.append(festival)
+                    contenttypeid = int(contenttypeid)
+                    contentid = int(contentid)
+                    if contenttypeid == 15: # 행사/공연/축제
+                        eventStartDate, eventEndDate = contentID(contentid, contenttypeid)  # contentID 함수 호출
+                        festival = {
+                            "title": item.get('title', '이름 없음'),
+                            "address": item.get('addr1', '주소 없음'),
+                            "image": item.get('firstimage', '이미지 없음'),
+                            "contentid": item.get('contentid', '컨텐츠아이디 없음'),
+                            "contenttypeid": item.get('contenttypeid', '컨텐츠타입 없음'),
+                            "eventStartDate": eventStartDate,
+                            "eventEndDate": eventEndDate,
+                        }
+                        festivals.append(festival)
+                    elif contenttypeid == 14:
+                        usetimeculture, restdateculture = contentID(contentid, contenttypeid)
+                        festival = {
+                            "title": item.get('title', '이름 없음'),
+                            "address": item.get('addr1', '주소 없음'),
+                            "image": item.get('firstimage', '이미지 없음'),
+                            "contentid": item.get('contentid', '컨텐츠아이디 없음'),
+                            "contenttypeid": item.get('contenttypeid', '컨텐츠타입 없음'),
+                            "usetimeculture": usetimeculture,
+                            "restdateculture": restdateculture,
+                        }
+                        festivals.append(festival)
+                    elif contenttypeid == 12:
+                        opendate, usetime = contentID(contentid, contenttypeid)
+                        festival = {
+                            "title": item.get('title', '이름 없음'),
+                            "address": item.get('addr1', '주소 없음'),
+                            "image": item.get('firstimage', '이미지 없음'),
+                            "contentid": item.get('contentid', '컨텐츠아이디 없음'),
+                            "contenttypeid": item.get('contenttypeid', '컨텐츠타입 없음'),
+                            "opendate": opendate,
+                            "usetime": usetime,
+                        }
+                        festivals.append(festival)
+
                 return festivals  # JSONResponse 대신 일반적으로 리스트 반환
             else:
                 return {"message": "검색된 항목이 없습니다."}
@@ -128,7 +157,6 @@ async def search_keyword(stdo: SearchDTO):
         return {"message": f"API 요청 중 오류 발생: {e}"}
     except Exception as e:
         return {"message": f"에러 발생: {e}"}
-
 
 
 
@@ -178,13 +206,6 @@ def image_festival(contentID):
                 else:
                     images = other_images
 
-                
-                #for img in images:
-                    #print(f"이미지 이름: {img['imgname']}")
-                    #print(f"원본 이미지 URL: {img['originimgurl']}")
-                    #print(f"작은 이미지 URL: {img['smallimageurl']}")
-                    #print(f"저작권 구분 코드: {img['cpyrhtDivCd']}")
-                    #print("-" * 50)
                 return JSONResponse(content=images)
 
             else:
@@ -198,7 +219,7 @@ def image_festival(contentID):
 
 
 
-def contentID(contentid):
+def contentID(contentid, contenttypeid):
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/detailIntro1"
 
     params = {
@@ -206,7 +227,7 @@ def contentID(contentid):
         "MobileApp": "AppTest",
         "_type": "json",
         "contentId": contentid,        # 콘텐츠 ID
-        "contentTypeId": 15, # 콘텐츠 타입 ID
+        "contentTypeId": contenttypeid, # 콘텐츠 타입 ID
         "serviceKey": SERVICE_KEY        # 서비스 키
     }
 
@@ -220,9 +241,18 @@ def contentID(contentid):
         items = data.get('response', {}).get('body', {}).get('items', {}).get('item', [])
         if items:
             event = items[0]
-            eventStartDate = event.get('eventstartdate', '정보 없음')
-            eventEndDate = event.get('eventenddate', '정보 없음')
-            return eventStartDate, eventEndDate
+            if contenttypeid == 15:
+                eventStartDate = event.get('eventstartdate', '정보 없음')
+                eventEndDate = event.get('eventenddate', '정보 없음')
+                return eventStartDate, eventEndDate
+            if contenttypeid == 14:
+                usetimeculture = event.get('usetimeculture', '정보 없음')
+                restdateculture = event.get('restdateculture', '정보 없음')
+                return usetimeculture, restdateculture
+            if contenttypeid == 12:
+                opendate = event.get('opendate', '정보 없음')
+                usetime = event.get('usetime', '정보 없음')
+                return opendate, usetime
         else:
             return '정보 없음', '정보 없음'  # items가 비었을 경우 처리
     except requests.exceptions.RequestException as e:

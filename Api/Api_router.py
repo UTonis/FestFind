@@ -1,7 +1,7 @@
 import requests
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from .Api_schema import SearchDTO
+from .Api_schema import SearchDTO, festivalInfoDTO
 
 router = APIRouter(
     prefix="/api",
@@ -99,8 +99,9 @@ async def search_keyword(stdo: SearchDTO):
             data = response.json()  # 응답이 JSON 형식이어야 함
         except ValueError:
             return {"message": "응답 데이터가 JSON 형식이 아닙니다."}
+        print(data)
         if data.get("response", {}).get("header", {}).get("resultCode") == "0000":
-            items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
+            items = data.get("response", {}).get("body", {}).get("items", {})
             if isinstance(items, list) and items:
                 festivals = []
                 for item in items:
@@ -157,6 +158,149 @@ async def search_keyword(stdo: SearchDTO):
         return {"message": f"API 요청 중 오류 발생: {e}"}
     except Exception as e:
         return {"message": f"에러 발생: {e}"}
+
+@router.post("/Getfestivaldetails")
+async def get_festival_details(ftinfo: festivalInfoDTO):
+    # 기본 URL 설정
+    BASE_URL = "http://apis.data.go.kr/B551011/KorService1/detailIntro1"
+
+    # 요청 파라미터 설정
+    params = {
+        "MobileOS": "ETC",
+        "MobileApp": "AppTest",
+        "_type": "json",
+        "contentId": ftinfo.contentId,
+        "contentTypeId": ftinfo.contentTypeId,
+        "serviceKey": SERVICE_KEY
+    }
+
+    # API 요청 보내기
+    response = requests.get(BASE_URL, params=params)
+
+    if response.status_code == 200:
+        # 응답 성공 시 데이터 파싱
+        data = response.json()
+
+        # 응답 구조 확인
+        items = data.get('response', {}).get('body', {}).get('items', {}).get('item', [])
+        
+        if items:
+            event = items[0]
+            print(event)
+            # contentTypeId에 따른 출력 구분
+            if ftinfo.contentTypeId == 12:  # 관광지
+                accomcount = event.get('accomcount', '정보 없음')
+                chkbabycarriage = event.get('chkbabycarriage', '정보 없음')
+                chkcreditcard = event.get('chkcreditcard', '정보 없음')
+                chkpet = event.get('chkpet', '정보 없음')
+                expagerange = event.get('expagerange', '정보 없음')
+                expguide = event.get('expguide', '정보 없음')
+                heritage1 = event.get('heritage1', '정보 없음')
+                heritage2 = event.get('heritage2', '정보 없음')
+                heritage3 = event.get('heritage3', '정보 없음')
+                infocenter = event.get('infocenter', '정보 없음')
+                opendate = event.get('opendate', '정보 없음')
+                parking = event.get('parking', '정보 없음')
+                restdate = event.get('restdate', '정보 없음')
+                useseason = event.get('useseason', '정보 없음')
+                usetime = event.get('usetime', '정보 없음')
+
+                festival_info = {
+                    "accomcount": accomcount,
+                    "chkbabycarriage": chkbabycarriage,
+                    "chkcreditcard": chkcreditcard,
+                    "chkpet": chkpet,
+                    "expagerange": expagerange,
+                    "expguide": expguide,
+                    "heritage1": heritage1,
+                    "heritage2": heritage2,
+                    "heritage3": heritage3,
+                    "infocenter": infocenter,
+                    "opendate": opendate,
+                    "parking": parking,
+                    "restdate": restdate,
+                    "useseason": useseason,
+                    "usetime": usetime
+                }
+                return festival_info
+            elif ftinfo.contentTypeId == 14:  # 문화시설
+                accomcountculture = event.get('accomcountculture', '정보 없음')
+                chkbabycarriageculture = event.get('chkbabycarriageculture', '정보 없음')
+                chkcreditcardculture = event.get('chkcreditcardculture', '정보 없음')
+                chkpetculture = event.get('chkpetculture', '정보 없음')
+                discountinfo = event.get('discountinfo', '정보 없음')
+                infocenterculture = event.get('infocenterculture', '정보 없음')
+                parkingculture = event.get('parkingculture', '정보 없음')
+                parkingfee = event.get('parkingfee', '정보 없음')
+                restdateculture = event.get('restdateculture', '정보 없음')
+                usefee = event.get('usefee', '정보 없음')
+                usetimeculture = event.get('usetimeculture', '정보 없음')
+                scale = event.get('scale', '정보 없음')
+                spendtime = event.get('spendtime', '정보 없음')
+
+                festival_info = {
+                    "accomcountculture": accomcountculture,
+                    "chkbabycarriageculture": chkbabycarriageculture,
+                    "chkcreditcardculture": chkcreditcardculture,
+                    "chkpetculture": chkpetculture,
+                    "discountinfo": discountinfo,
+                    "infocenterculture": infocenterculture,
+                    "parkingculture": parkingculture,
+                    "parkingfee": parkingfee,
+                    "restdateculture": restdateculture,
+                    "usefee": usefee,
+                    "usetimeculture": usetimeculture,
+                    "scale": scale,
+                    "spendtime": spendtime
+                }
+                return festival_info
+            elif ftinfo.contentTypeId == 15:  # 행사/공연/축제
+                agelimit = event.get('agelimit', '정보 없음')
+                bookingplace = event.get('bookingplace', '정보 없음')
+                discountinfofestival = event.get('discountinfofestival', '정보 없음')
+                eventenddate = event.get('eventenddate', '정보 없음')
+                eventhomepage = event.get('eventhomepage', '정보 없음')
+                eventplace = event.get('eventplace', '정보 없음')
+                eventstartdate = event.get('eventstartdate', '정보 없음')
+                festivalgrade = event.get('festivalgrade', '정보 없음')
+                placeinfo = event.get('placeinfo', '정보 없음')
+                playtime = event.get('playtime', '정보 없음')
+                program = event.get('program', '정보 없음')
+                spendtimefestival = event.get('spendtimefestival', '정보 없음')
+                sponsor1 = event.get('sponsor1', '정보 없음')
+                sponsor1tel = event.get('sponsor1tel', '정보 없음')
+                sponsor2 = event.get('sponsor2', '정보 없음')
+                sponsor2tel = event.get('sponsor2tel', '정보 없음')
+                subevent = event.get('subevent', '정보 없음')
+                usetimefestival = event.get('usetimefestival', '정보 없음')
+
+                festival_info = {
+                    "agelimit": agelimit,
+                    "bookingplace": bookingplace,
+                    "discountinfofestival": discountinfofestival,
+                    "eventenddate": eventenddate,
+                    "eventhomepage": eventhomepage,
+                    "eventplace": eventplace,
+                    "eventstartdate": eventstartdate,
+                    "festivalgrade": festivalgrade,
+                    "placeinfo": placeinfo,
+                    "playtime": playtime,
+                    "program": program,
+                    "spendtimefestival": spendtimefestival,
+                    "sponsor1": sponsor1,
+                    "sponsor1tel": sponsor1tel,
+                    "sponsor2": sponsor2,
+                    "sponsor2tel": sponsor2tel,
+                    "subevent": subevent,
+                    "usetimefestival": usetimefestival
+                }
+                return festival_info
+            else:
+                return {"message": "해당 contentTypeId에 대한 추가 정보가 없습니다."}
+        else:
+            return {"message": "이벤트 정보가 없습니다."}
+    else:
+        return {"message": "API 요청 실패: {response.status_code}"}
 
 
 
@@ -215,9 +359,6 @@ def image_festival(contentID):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": f"에러 발생: {str(e)}"})
-    
-
-
 
 def contentID(contentid, contenttypeid):
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/detailIntro1"

@@ -18,13 +18,10 @@ app = FastAPI(
 for router in routers:
     app.include_router(router=router)
 
-origins = [
-    "http://localhost:5175",  # 프론트엔드 주소 추가
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

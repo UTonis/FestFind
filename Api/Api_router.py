@@ -1,7 +1,7 @@
 import requests
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from .Api_schema import SearchDTO, festivalInfoDTO
+from Api.Api_schema import SearchDTO, festivalInfoDTO
 
 router = APIRouter(
     prefix="/api",

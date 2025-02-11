@@ -2,12 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from User.user_router import router as user_router
 from Api.Api_router import router as api_router
+from Rating.rating_router import router as rating_router
+from fevorites.fevorites_router import router as fevorites_router
 from core.database import init_db
 from core.config import get_config
 
 routers = []
 routers.append(user_router)
 routers.append(api_router)
+routers.append(rating_router)
+routers.append(fevorites_router)
 
 app = FastAPI(
     openapi_url="/openapi.json",
@@ -18,16 +22,12 @@ app = FastAPI(
 for router in routers:
     app.include_router(router=router)
 
-origins = [
-    "http://localhost:5175",  # 프론트엔드 주소 추가
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # 허용할 출처
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],  # 허용할 HTTP 메서드
+    allow_headers=["*"],  # 허용할 헤더
 )
 
 init_db(config=get_config())

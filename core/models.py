@@ -20,3 +20,21 @@ class RegionModel(Base):
     __table_args__ = (
         PrimaryKeyConstraint('region_id', 'id'),
     )
+
+class RatingModel(Base):
+    __tablename__ = "ratings"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    contentId = Column(Integer, nullable=False)
+    contentTypeId = Column(Integer, nullable=False)
+    user_id = Column(String(50), nullable=False)
+    rating = Column(Integer, nullable=False)
+    title = Column(String(255))
+
+class FavoritesModel(Base):
+    __tablename__ = "favorites"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    contentId = Column(Integer, nullable=False)
+    contentTypeId = Column(Integer, nullable=False)
+    user_id = Column(String(50), nullable=False)

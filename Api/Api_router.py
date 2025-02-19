@@ -1,7 +1,9 @@
 import requests
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from Api.Api_schema import SearchDTO, festivalInfoDTO
+from Api.Api_schema import SearchDTO, festivalInfoDTO, calendarDTO
+from datetime import datetime
+from collections import defaultdict
 
 router = APIRouter(
     prefix="/api",
@@ -15,14 +17,16 @@ async def get_main_festival():
     # 기본 URL 설정
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/searchFestival1"
 
+    today_date = datetime.today().strftime("%Y%m%d")
+
     # 요청 파라미터 설정
     params = {
-        "numOfRows": 10,
+        "numOfRows": 35,
         "MobileOS": "ETC",
         "MobileApp": "AppTest",
         "_type": "json",
         "arrange": "D",
-        "eventStartDate": 20250121,
+        "eventStartDate": today_date,
         "serviceKey": SERVICE_KEY
     }
 
@@ -159,7 +163,7 @@ async def search_keyword(stdo: SearchDTO):
     except Exception as e:
         return {"message": f"에러 발생: {e}"}
 
-@router.post("/Getfestivaldetails")
+@router.post("/festivaldetails")
 async def get_festival_details(ftinfo: festivalInfoDTO):
     # 기본 URL 설정
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/detailIntro1"
@@ -302,6 +306,56 @@ async def get_festival_details(ftinfo: festivalInfoDTO):
     else:
         return {"message": "API 요청 실패: {response.status_code}"}
 
+@router.post("/calendar")
+async def calendar(calendar: calendarDTO):
+    # 기본 URL 설정
+    BASE_URL = "http://apis.data.go.kr/B551011/KorService1/searchFestival1"
+
+    # 해당 월의 시작 날짜 계산
+    event_start_date = f"{year}{month:02d}01"  # YYYYMMDD 형식 (ex: 20250201)
+
+    # 요청 파라미터 설정
+    params = {
+        "numOfRows": 100,
+        "MobileOS": "ETC",
+        "MobileApp": "AppTest",
+        "_type": "json",
+        "arrange": "D",
+        "eventStartDate": event_start_date,
+        "serviceKey": SERVICE_KEY
+    }
+
+    # API 요청 보내기
+    response = requests.get(BASE_URL, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        if "response" in data and "body" in data["response"]:
+            festivals = data["response"]["body"].get("items", {}).get("item", [])
+            festivals_by_day = defaultdict(list)  # 날짜별 정리
+
+            if festivals:
+                for festival in festivals:
+                    title = festival.get("title", "제목 없음")
+                    start_date = festival.get("eventstartdate", "시작일 미제공")
+                    end_date = festival.get("eventenddate", "종료일 미제공")
+
+                    if start_date.isdigit() and start_date.startswith(f"{year}{month:02d}"):
+                        day = int(start_date[-2:])  # YYYYMMDD 중 'DD'만 추출
+                        festivals_by_day[day].append({
+                            "title": title,
+                            "eventstartdate": start_date,
+                            "eventenddate": end_date,
+                        })
+
+                return dict(festivals_by_day) if festivals_by_day else {"message": "해당 월에 대한 축제가 없습니다."}
+            else:
+                return {"message": "검색된 항목이 없습니다."}
+        else:
+            return {"message": "응답에 축제 정보가 포함되어 있지 않습니다."}
+    else:
+        return {"message": "API 요청 실패"}
 
 
 def image_festival(contentID):

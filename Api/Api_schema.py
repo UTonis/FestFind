@@ -9,3 +9,7 @@ class SearchDTO(BaseModel):
 class festivalInfoDTO(BaseModel):
     contentId: int
     contentTypeId: int
+
+class calendarDTO(BaseModel):
+    Year: int
+    Month: int

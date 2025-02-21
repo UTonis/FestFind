@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from core.database import provide_session
-from core.dependencies import verify_password, create_jwt, verify_jwt
+from core.dependencies import verify_password, create_jwt, verify_jwt, hash_password
 from User.user_crud import UserCRUD
-from User.user_schema import UserDTO, LoginUserDTO
+from User.user_schema import UserDTO, LoginUserDTO, DeleteUserDTO, ChangeUserDTO
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(
@@ -16,10 +16,10 @@ async def login_user(lg_user: LoginUserDTO, db: AsyncSession = Depends(provide_s
     user = await crud.get_user_by_id(lg_user.id)
 
     if not user:
-        raise HTTPException(status_code=404, detail="아이디가 존재하지 않습니다.")
+        raise HTTPException(status_code=404, detail="아이디 또는 비밀번호가 일치하지 않습니다.")
 
     if not verify_password(lg_user.pw, user.pw):
-        raise HTTPException(status_code=401, detail="비밀번호 불일치")
+        raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 일치하지 않습니다.")
 
     token_data = {"sub": user.id}
     token = create_jwt(token_data)
@@ -45,3 +45,32 @@ async def current_user_id(token: str):
     payload = verify_jwt(token)
 
     return payload
+
+@router.put("/update_user/{id}")
+async def change_pw(user: ChangeUserDTO, db: AsyncSession = Depends(provide_session)):
+    crud = UserCRUD(db)
+
+    us = await crud.get_user_by_id(user.id)
+    if not us:
+        raise HTTPException(status_code=404, detail="user not found")
+
+
+    if verify_password(user.pw, us.pw):
+        await crud.change_pw(user.id, hash_password(user.new_pw))
+        return {"msg" : "비밀번호 변경 성공"}
+    else:
+        return {"msg" : "비밀번호 불일치"}
+
+@router.delete("/delete_Id/{id}")
+async def delete_user(user: DeleteUserDTO,  db: AsyncSession = Depends(provide_session)):
+    crud = UserCRUD(db)
+
+    us = await crud.get_user_by_id(user.id)
+    if not us:
+        raise HTTPException(status_code=404, detail="user not found")
+    
+    await crud.delete_user(user.id)
+
+    return {"message" : "회원탈퇴 되었습니다."}
+
+

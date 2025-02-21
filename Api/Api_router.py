@@ -312,11 +312,11 @@ async def calendar(calendar: calendarDTO):
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/searchFestival1"
 
     # 해당 월의 시작 날짜 계산
-    event_start_date = f"{year}{month:02d}01"  # YYYYMMDD 형식 (ex: 20250201)
+    event_start_date = f"{calendar.Year}{calendar.Month:02d}01"  # YYYYMMDD 형식 (ex: 20250201)
 
     # 요청 파라미터 설정
     params = {
-        "numOfRows": 100,
+        "numOfRows": 10000,
         "MobileOS": "ETC",
         "MobileApp": "AppTest",
         "_type": "json",
@@ -340,13 +340,27 @@ async def calendar(calendar: calendarDTO):
                     title = festival.get("title", "제목 없음")
                     start_date = festival.get("eventstartdate", "시작일 미제공")
                     end_date = festival.get("eventenddate", "종료일 미제공")
+                    addr1 = festival.get("addr1", "주소 미제공")
+                    addr2 = festival.get("addr2", "주소 미제공")
+                    firstimage = festival.get("firstimage", "원본 이미지 미제공")
+                    firstimage2 = festival.get("firstimage2", "썸네일 대표 이미지 미제공")
+                    areacode = festival.get("areacode", "지역코드 미제공")
+                    contentid = festival.get("contentid", "컨텐츠아이디 미제공")
+                    contenttypeid = festival.get("contenttypeid", "컨텐츠타입아이디 미제공")
 
-                    if start_date.isdigit() and start_date.startswith(f"{year}{month:02d}"):
+                    if start_date.isdigit() and start_date.startswith(f"{calendar.Year}{calendar.Month:02d}"):
                         day = int(start_date[-2:])  # YYYYMMDD 중 'DD'만 추출
                         festivals_by_day[day].append({
-                            "title": title,
+                            "addr1": addr1,
+                            "addr2": addr2,
                             "eventstartdate": start_date,
                             "eventenddate": end_date,
+                            "title": title,
+                            "firstimage" : firstimage,
+                            "firstimage2" : firstimage2,
+                            "areacode" : areacode,
+                            "contentid" : contentid,
+                            "contenttypeid" : contenttypeid,
                         })
 
                 return dict(festivals_by_day) if festivals_by_day else {"message": "해당 월에 대한 축제가 없습니다."}

@@ -25,3 +25,22 @@ class UserCRUD:
         await self._session.commit()
 
         return new_user
+    
+    async def delete_user(self, id: int):
+        result = await self._session.execute(select(UserModel).filter(UserModel.id == id))
+        user = result.scalar_one_or_none()
+        if user:
+            await self._session.delete(user)
+            await self._session.commit()
+        
+        return user
+    
+    async def change_pw(self, id, new_pw: str):
+        result = await self._session.execute(select(UserModel).filter(UserModel.id == id))
+        user = result.scalar_one_or_none()
+
+        if user:
+            user.pw = new_pw
+
+            await self._session.commit()
+            await self._session.refresh(user)

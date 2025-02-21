@@ -9,3 +9,11 @@ class UserDTO(BaseModel):
 class LoginUserDTO(BaseModel):
     id: str
     pw: str
+
+class DeleteUserDTO(BaseModel):
+    id: str
+
+class ChangeUserDTO(BaseModel):
+    id: str
+    pw: str
+    new_pw: str

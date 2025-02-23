@@ -50,12 +50,16 @@ async def get_main_festival():
                     start_date = festival.get("eventstartdate", "시작일 미제공")
                     end_date = festival.get("eventenddate", "종료일 미제공")
                     addr1 = festival.get("addr1", "주소 미제공")
-                    addr2 = festival.get("addr2", "주소 미제공")
+                    addr2 = festival.get("addr2", "상세주소 미제공")
                     firstimage = festival.get("firstimage", "원본 이미지 미제공")
                     firstimage2 = festival.get("firstimage2", "썸네일 대표 이미지 미제공")
                     areacode = festival.get("areacode", "지역코드 미제공")
                     contentid = festival.get("contentid", "컨텐츠아이디 미제공")
                     contenttypeid = festival.get("contenttypeid", "컨텐츠타입아이디 미제공")
+                    sigungucode = festival.get("sigungucode", "시군구코드 미제공")
+                    tel = festival.get("tel", "전화번호 미제공")
+                    mapx = festival.get("mapx", "GPS X좌표 미제공")
+                    mapy = festival.get("mapy", "GPS Y좌표 미제공")
 
                     refined_festival = {
                         "addr1": addr1,
@@ -63,11 +67,15 @@ async def get_main_festival():
                         "eventstartdate": start_date,
                         "eventenddate": end_date,
                         "title": title,
-                        "firstimage" : firstimage,
-                        "firstimage2" : firstimage2,
-                        "areacode" : areacode,
-                        "contentid" : contentid,
-                        "contenttypeid" : contenttypeid,
+                        "firstimage": firstimage,
+                        "firstimage2": firstimage2,
+                        "areacode": areacode,
+                        "contentid": contentid,
+                        "contenttypeid": contenttypeid,
+                        "sigungucode": sigungucode,
+                        "tel": tel,
+                        "mapx": mapx,
+                        "mapy": mapy,
                     }
                     refined_festivals.append(refined_festival)    
                 return refined_festivals        
@@ -103,9 +111,9 @@ async def search_keyword(stdo: SearchDTO):
             data = response.json()  # 응답이 JSON 형식이어야 함
         except ValueError:
             return {"message": "응답 데이터가 JSON 형식이 아닙니다."}
-        print(data)
+        
         if data.get("response", {}).get("header", {}).get("resultCode") == "0000":
-            items = data.get("response", {}).get("body", {}).get("items", {})
+            items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
             if isinstance(items, list) and items:
                 festivals = []
                 for item in items:
@@ -117,9 +125,19 @@ async def search_keyword(stdo: SearchDTO):
                         eventStartDate, eventEndDate = contentID(contentid, contenttypeid)  # contentID 함수 호출
                         festival = {
                             "title": item.get('title', '이름 없음'),
-                            "address": item.get('addr1', '주소 없음'),
-                            "image": item.get('firstimage', '이미지 없음'),
+                            "addr1": item.get('addr1', '주소1 없음'),
+                            "addr2": item.get('addr2', '주소2 없음'),
+                            "areaCode": item.get('areaCode', '지역코드 없음'),
+                            "firstimage": item.get('firstimage', '원본이미지 없음'),
+                            "firstimage2": item.get('firstimage2', '썸네일이미지 없음'),
                             "contentid": item.get('contentid', '컨텐츠아이디 없음'),
+                            "cpyrhtDivCd": item.get('cpyrhtDivCd', '저작권 유형 없음'),
+                            "mapx": item.get('mapx', 'GPS X좌표 없음'),
+                            "mapy": item.get('mapy', 'GPS Y좌표 없음'),
+                            "mlevel": item.get('mlevel', '맵 레벨 없음'),
+                            "modifiedtime": item.get('modifiedtime', '콘텐츠 수정일 없음'),
+                            "sigungucode": item.get('sigungucode', '시군구코드 없음'),
+                            "tel": item.get('tel', '전화번호 없음'),
                             "contenttypeid": item.get('contenttypeid', '컨텐츠타입 없음'),
                             "eventStartDate": eventStartDate,
                             "eventEndDate": eventEndDate,
@@ -129,9 +147,19 @@ async def search_keyword(stdo: SearchDTO):
                         usetimeculture, restdateculture = contentID(contentid, contenttypeid)
                         festival = {
                             "title": item.get('title', '이름 없음'),
-                            "address": item.get('addr1', '주소 없음'),
-                            "image": item.get('firstimage', '이미지 없음'),
+                            "addr1": item.get('addr1', '주소1 없음'),
+                            "addr2": item.get('addr2', '주소2 없음'),
+                            "areaCode": item.get('areaCode', '지역코드 없음'),
+                            "firstimage": item.get('firstimage', '원본이미지 없음'),
+                            "firstimage2": item.get('firstimage2', '썸네일이미지 없음'),
                             "contentid": item.get('contentid', '컨텐츠아이디 없음'),
+                            "cpyrhtDivCd": item.get('cpyrhtDivCd', '저작권 유형 없음'),
+                            "mapx": item.get('mapx', 'GPS X좌표 없음'),
+                            "mapy": item.get('mapy', 'GPS Y좌표 없음'),
+                            "mlevel": item.get('mlevel', '맵 레벨 없음'),
+                            "modifiedtime": item.get('modifiedtime', '콘텐츠 수정일 없음'),
+                            "sigungucode": item.get('sigungucode', '시군구코드 없음'),
+                            "tel": item.get('tel', '전화번호 없음'),
                             "contenttypeid": item.get('contenttypeid', '컨텐츠타입 없음'),
                             "usetimeculture": usetimeculture,
                             "restdateculture": restdateculture,
@@ -141,9 +169,19 @@ async def search_keyword(stdo: SearchDTO):
                         opendate, usetime = contentID(contentid, contenttypeid)
                         festival = {
                             "title": item.get('title', '이름 없음'),
-                            "address": item.get('addr1', '주소 없음'),
-                            "image": item.get('firstimage', '이미지 없음'),
+                            "addr1": item.get('addr1', '주소1 없음'),
+                            "addr2": item.get('addr2', '주소2 없음'),
+                            "areaCode": item.get('areaCode', '지역코드 없음'),
+                            "firstimage": item.get('firstimage', '원본이미지 없음'),
+                            "firstimage2": item.get('firstimage2', '썸네일이미지 없음'),
                             "contentid": item.get('contentid', '컨텐츠아이디 없음'),
+                            "cpyrhtDivCd": item.get('cpyrhtDivCd', '저작권 유형 없음'),
+                            "mapx": item.get('mapx', 'GPS X좌표 없음'),
+                            "mapy": item.get('mapy', 'GPS Y좌표 없음'),
+                            "mlevel": item.get('mlevel', '맵 레벨 없음'),
+                            "modifiedtime": item.get('modifiedtime', '콘텐츠 수정일 없음'),
+                            "sigungucode": item.get('sigungucode', '시군구코드 없음'),
+                            "tel": item.get('tel', '전화번호 없음'),
                             "contenttypeid": item.get('contenttypeid', '컨텐츠타입 없음'),
                             "opendate": opendate,
                             "usetime": usetime,
@@ -190,7 +228,6 @@ async def get_festival_details(ftinfo: festivalInfoDTO):
         
         if items:
             event = items[0]
-            print(event)
             # contentTypeId에 따른 출력 구분
             if ftinfo.contentTypeId == 12:  # 관광지
                 accomcount = event.get('accomcount', '정보 없음')
@@ -307,12 +344,12 @@ async def get_festival_details(ftinfo: festivalInfoDTO):
         return {"message": "API 요청 실패: {response.status_code}"}
 
 @router.post("/calendar")
-async def calendar(calendar: calendarDTO):
+async def calendar(cdto: calendarDTO):
     # 기본 URL 설정
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/searchFestival1"
 
     # 해당 월의 시작 날짜 계산
-    event_start_date = f"{calendar.Year}{calendar.Month:02d}01"  # YYYYMMDD 형식 (ex: 20250201)
+    event_start_date = f"{cdto.Year}{cdto.Month:02d}01"  # YYYYMMDD 형식 (ex: 20250201)
 
     # 요청 파라미터 설정
     params = {
@@ -347,8 +384,16 @@ async def calendar(calendar: calendarDTO):
                     areacode = festival.get("areacode", "지역코드 미제공")
                     contentid = festival.get("contentid", "컨텐츠아이디 미제공")
                     contenttypeid = festival.get("contenttypeid", "컨텐츠타입아이디 미제공")
+                    createdtime = festival.get("createdtime", "등록일 미제공")
+                    mapx = festival.get("mapx", "GPS X좌표 미제공")
+                    mapy = festival.get("mapy", "GPS Y좌표 미제공")
+                    modifiedtime = festival.get("modifiedtime", "수정일 미제공")
+                    sigungucode = festival.get("sigungucode", "시군구코드 미제공")
+                    mlevel = festival.get("mlevel", "맵 레벨 미제공")
+                    tel = festival.get("tel", "전화번호 미제공")
+                    
 
-                    if start_date.isdigit() and start_date.startswith(f"{calendar.Year}{calendar.Month:02d}"):
+                    if start_date.isdigit() and start_date.startswith(f"{cdto.Year}{cdto.Month:02d}"):
                         day = int(start_date[-2:])  # YYYYMMDD 중 'DD'만 추출
                         festivals_by_day[day].append({
                             "addr1": addr1,
@@ -361,6 +406,14 @@ async def calendar(calendar: calendarDTO):
                             "areacode" : areacode,
                             "contentid" : contentid,
                             "contenttypeid" : contenttypeid,
+                            "createdtime" : createdtime,
+                            "mapx" : mapx,
+                            "mapy" : mapy,
+                            "modifiedtime" : modifiedtime,
+                            "sigungucode" : sigungucode,
+                            "mlevel" : mlevel,
+                            "tel" : tel,
+                            
                         })
 
                 return dict(festivals_by_day) if festivals_by_day else {"message": "해당 월에 대한 축제가 없습니다."}
@@ -370,8 +423,7 @@ async def calendar(calendar: calendarDTO):
             return {"message": "응답에 축제 정보가 포함되어 있지 않습니다."}
     else:
         return {"message": "API 요청 실패"}
-
-
+    
 def image_festival(contentID):
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/detailImage1"
 

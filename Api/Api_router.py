@@ -91,13 +91,13 @@ async def search_keyword(stdo: SearchDTO):
     BASE_URL = "http://apis.data.go.kr/B551011/KorService1/searchKeyword1"
 
     params = {
-        "numOfRows": stdo.numOfRows,
+        "numOfRows": 10,
         "pageNo": stdo.pageNo,
         "MobileOS": "ETC",
         "MobileApp": "AppTest",
         "_type": "json",
         "listYN": "Y",
-        "arrange": "A",
+        "arrange": "C",
         "keyword": stdo.keyword,
         "contentTypeId": stdo.contentTypeId,
         "serviceKey": SERVICE_KEY
@@ -111,9 +111,10 @@ async def search_keyword(stdo: SearchDTO):
             data = response.json()  # 응답이 JSON 형식이어야 함
         except ValueError:
             return {"message": "응답 데이터가 JSON 형식이 아닙니다."}
-        
+
         if data.get("response", {}).get("header", {}).get("resultCode") == "0000":
             items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
+            
             if isinstance(items, list) and items:
                 festivals = []
                 for item in items:

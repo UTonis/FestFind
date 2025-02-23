@@ -20,9 +20,9 @@ class RatingCRUD:
     
     async def get_rating_by_contentid(self, contentId: int):
         result = await self._session.execute(select(RatingModel).filter(RatingModel.contentId == contentId))
-        return result.scalar_one_or_none()
+        return result.scalars().all()
 
-    async def delete_studyboard(self, id: int):
+    async def delete_rating(self, id: int): #아직 사용 X
         result = await self._session.execute(select(RatingModel).filter(RatingModel.id == id))
         post = result.scalar_one_or_none()
         if post:

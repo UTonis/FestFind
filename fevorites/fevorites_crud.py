@@ -16,5 +16,5 @@ class fevoritesCRUD:
     
     async def get_fevorites_by_id(self, user_id: int):
         result = await self._session.execute(select(FavoritesModel).filter(FavoritesModel.user_id == user_id))
-        return result.scalar_one_or_none()
+        return result.scalars().all()
     

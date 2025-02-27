@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, PrimaryKeyConstraint, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
 from core.database import Base
 
 class UserModel(Base):
@@ -13,13 +13,10 @@ class UserModel(Base):
 class RegionModel(Base):
     __tablename__ = "regions"
     
+    pk = Column(Integer, primary_key=True, autoincrement=True)
     region_id = Column(Integer, nullable=False)
     id = Column(String(50), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     
-    # 복합 기본 키 설정
-    __table_args__ = (
-        PrimaryKeyConstraint('region_id', 'id'),
-    )
 
 class RatingModel(Base):
     __tablename__ = "ratings"

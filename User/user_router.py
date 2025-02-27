@@ -46,6 +46,13 @@ async def current_user_id(token: str):
 
     return payload
 
+@router.post("/get_user_by_id")
+async def getUser(id: str, db: AsyncSession = Depends(provide_session)):
+    crud = UserCRUD(db)
+
+    user = await crud.get_user_by_id(id)
+    return user
+
 @router.put("/update_user/{id}")
 async def change_pw(user: ChangeUserDTO, db: AsyncSession = Depends(provide_session)):
     crud = UserCRUD(db)

@@ -16,7 +16,7 @@ class RatingCRUD:
     
     async def get_rating_by_id(self, user_id: int):
         result = await self._session.execute(select(RatingModel).filter(RatingModel.user_id == user_id))
-        return result.scalar_one_or_none()
+        return result.scalars().all()
     
     async def get_rating_by_contentid(self, contentId: int):
         result = await self._session.execute(select(RatingModel).filter(RatingModel.contentId == contentId))
